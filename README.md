@@ -1,5 +1,4 @@
 # ga-movieapp
-ga code challenge
 
 ### General Description
 This is a node.js express light-weight prototyping web application that utilize an external API (OMDBAPI) to request movie data.
