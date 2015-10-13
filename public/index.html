@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head><title>ga code challenge</title>
+<style>
+  body { margin-left: 50px; }
+  .img { width: 60px; }
+  figure { float: left;
+         margin: 10px;
+         padding-right: 5px; }
+  figure:hover img { -webkit-transform: scale(1.2);
+	 transform: scale(1.2);
+	 -webkit-transition: .3s ease-in-out;
+	 transition: .3s ease-in-out; }
+  p { display: inline-block;}
+  p.small { font-size: small;
+            font-style: italic;
+            display: block;
+            padding-left: 100px }
+  div.item { margin: 0 20px 0 20px;
+         overflow: hidden; }
+  span#clear { clear: both; }
+  span#fav { color: orange; }
+  a { color: blue;
+        text-decoration: underline; }
+  #detail { font-family: arial;
+          margin-left: 150px;
+          margin-right: 100px;
+          color: gray;
+          font-size: 0.8em; }
+</style>
+<script>
+// search
+function getMovies() {
+    document.getElementById('detail').innerHTML = ''; //reset to empty
+    document.getElementById('fav').disabled = false; // shown if any entries
+    var apiUrl = "https://www.omdbapi.com";
+    var query = document.getElementById("title").value;
+    httpGet('display',apiUrl + '/?s=' + query);
+}
+
+// display results, ajax
+function httpGet(id,url)
+{
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange=function() {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200) { //asynchronous handling
+        var html = "<br/>";
+        var mtitle, myear;
+        JSON.parse(xmlhttp.responseText, function(k,v){
+          if ( id === 'detail' ) {
+            if ( k === 'Title' )
+              html += "<h2>" + v + "</h2>";
+            else if ( typeof v !== 'object' && k !== 'Poster' && k !== 'Response' ) // not sure what Response means, so skip it 
+              html += k + " --- " + v + "<br/>";
+          } else {
+            if( typeof v !== 'object') {
+              if ( k === 'Year' ) // to store unique value mtitle + myear 
+                 myear = v;
+              if ( k === 'Title' ) {
+                 mtitle = v;
+                 html += "<div class='item'><p>";
+                 // recursive
+                 html += "<a href='#detail' onclick='httpGet(\"detail\", \"https://www.omdbapi.com/?t=" + v + "&plot=full\")'>" + v + "</a><br/>";
+              }
+              else if (k === 'Poster') {
+                 html += "<span id='fav'>Favorite </span> <input type=checkbox name='fav' value='" + mtitle + "-" + myear + "'>" 
+                 if ( v !== 'N/A') 
+                    html += "</p><figure><img src='" + v + "' class='img'></figure></div>";
+                 else //Poster is N/A  
+                    html += "</p><span id='clear'></span></div>";
+               }
+              else     
+                html += k + " --- " + v + "<br/>";
+             } 
+           }
+         });
+         document.getElementById(id).innerHTML = html;
+      }
+    }
+    xmlhttp.open("GET", url, true );
+    xmlhttp.send();
+}
+
+function listFav() {
+    window.open("/favorites", "fav", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=400, height=350");
+}
+
+</script>
+</head>
+<body>
+<h1>Like flicks?</h1>
+<form method="post">
+Which one?&nbsp;&nbsp; <input id="title" size="50" maxleng="200">&nbsp;&nbsp;
+<button type="button" onClick="getMovies()">Go</button>
+<button type="submit" id="fav" disabled>Set Favorite</button>
+<button type="button" onClick="listFav();return false;">See All Your Favorites</button>
+<p class="small">Please click Go to search, do not use return key.</p>
+<div id="detail"></div>
+<div id="display"></div>
+</form>
+</script>
+</body>
+</html>
